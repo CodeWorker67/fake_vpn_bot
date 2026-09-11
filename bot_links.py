@@ -13,6 +13,8 @@ BOT_LINKS: dict[str, str] = {
     "fastmobillevpnbot": "https://t.me/fastmobilevpnbot?start={username}",
     "fastgamerrbot": "https://t.me/fastgamerbot?start={username}",
     "gagarinskyyvpnbot": "https://t.me/Gagarinskyvpnbot?start={username}",
+    "abroadplus_bot": "https://t.me/zoomerskyvpn_bot?start={username}",
+    "rgqwbot": "https://t.me/open21vpn_bot?start={username}",
 }
 
 
