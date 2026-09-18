@@ -15,6 +15,7 @@ BOT_LINKS: dict[str, str] = {
     "gagarinskyyvpnbot": "https://t.me/Gagarinskyvpnbot?start={username}",
     "abroadplus_bot": "https://t.me/zoomerskyvpn_bot?start={username}",
     "rgqwbot": "https://t.me/open21vpn_bot?start={username}",
+    "GuavaVPNchikbot": "https://t.me/zoomerskyvpn_bot?start={username}",
 }
 
 
