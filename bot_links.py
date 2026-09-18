@@ -15,13 +15,15 @@ BOT_LINKS: dict[str, str] = {
     "gagarinskyyvpnbot": "https://t.me/Gagarinskyvpnbot?start={username}",
     "abroadplus_bot": "https://t.me/zoomerskyvpn_bot?start={username}",
     "rgqwbot": "https://t.me/open21vpn_bot?start={username}",
-    "GuavaVPNchikbot": "https://t.me/zoomerskyvpn_bot?start={username}",
+    "guavavpnchikbot": "https://t.me/zoomerskyvpn_bot?start={username}",
 }
+
+_BOT_LINKS = {k.lower(): v for k, v in BOT_LINKS.items()}
 
 
 def get_target_url(bot_username: str) -> str | None:
     key = bot_username.lstrip("@").lower()
-    template = BOT_LINKS.get(key)
+    template = _BOT_LINKS.get(key)
     if template is None:
         return None
     return template.format(username=bot_username.lstrip("@"))
