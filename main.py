@@ -5,11 +5,13 @@ import sys
 
 from aiogram import Bot, Dispatcher
 from aiogram.filters import CommandStart
+from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from dotenv import load_dotenv
 
 from bot_links import get_target_url
 from handlers_export import router as export_router
+from handlers_push import router as push_router
 from stats_db import init_db, record_start_user
 
 load_dotenv()
@@ -28,8 +30,9 @@ START_TEXT = (
     "👇 Нажмите «Открыть», чтобы получить персональный ключ доступа."
 )
 
-dp = Dispatcher()
+dp = Dispatcher(storage=MemoryStorage())
 dp.include_router(export_router)
+dp.include_router(push_router)
 
 
 @dp.message(CommandStart())
