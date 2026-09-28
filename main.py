@@ -7,9 +7,11 @@ from aiogram import Bot, Dispatcher
 from aiogram.filters import CommandStart
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 
 from bot_links import get_target_url
+from funnel_push import send_funnel_push_cron
 from handlers_export import router as export_router
 from handlers_push import router as push_router
 from stats_db import init_db, record_start_user
@@ -68,7 +70,22 @@ async def main() -> None:
     await asyncio.to_thread(init_db)
     bot = Bot(token=BOT_TOKEN)
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+
+    scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
+    scheduler.add_job(
+        send_funnel_push_cron,
+        trigger="interval",
+        minutes=30,
+        args=[bot],
+        misfire_grace_time=120,
+        id="funnel_push",
+    )
+    scheduler.start()
+
+    try:
+        await dp.start_polling(bot)
+    finally:
+        scheduler.shutdown(wait=False)
 
 
 if __name__ == "__main__":
