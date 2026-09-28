@@ -8,6 +8,7 @@ from aiogram import Bot
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot_links import get_target_url
+from broadcast_throttle import invoke_with_flood_retry, pause_after_send
 from config import CHECKER_ID
 from lexicon import lexicon
 from stats_db import list_all_users
@@ -15,9 +16,6 @@ from stats_db import list_all_users
 logger = logging.getLogger(__name__)
 
 VPN_BUTTON_TEXT = "Подключить ВПН"
-
-_SEND_BATCH_SIZE = 25
-_SEND_BATCH_PAUSE_SEC = 1.0
 
 
 @dataclass(frozen=True)
@@ -65,11 +63,13 @@ def _vpn_keyboard(bot_username: str | None) -> InlineKeyboardMarkup | None:
 async def _send_stage(bot: Bot, user_id: int, stage: PushStage, bot_username: str | None) -> None:
     text = lexicon[stage.lexicon_key]
     reply_markup = _vpn_keyboard(bot_username)
-    await bot.send_message(
-        chat_id=user_id,
-        text=text,
-        reply_markup=reply_markup,
-        parse_mode="HTML",
+    await invoke_with_flood_retry(
+        lambda: bot.send_message(
+            chat_id=user_id,
+            text=text,
+            reply_markup=reply_markup,
+            parse_mode="HTML",
+        )
     )
 
 
@@ -87,7 +87,6 @@ async def send_funnel_push_cron(bot: Bot) -> None:
         now = datetime.now(timezone.utc)
         sent_count = 0
         failed_count = 0
-        batch_count = 0
 
         for user in users:
             minutes_diff = int((now - user.joined_at).total_seconds() / 60)
@@ -103,13 +102,10 @@ async def send_funnel_push_cron(bot: Bot) -> None:
                     stage.lexicon_key,
                     user.user_id,
                 )
+                await pause_after_send()
             except Exception as e:
                 failed_count += 1
                 logger.debug("Автоворонка: не отправлено user %s: %s", user.user_id, e)
-
-            batch_count += 1
-            if batch_count % _SEND_BATCH_SIZE == 0:
-                await asyncio.sleep(_SEND_BATCH_PAUSE_SEC)
 
         if CHECKER_ID is not None:
             try:

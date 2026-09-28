@@ -15,6 +15,7 @@ from aiogram.types import (
 )
 
 from bot_links import get_target_url
+from broadcast_throttle import invoke_with_flood_retry, pause_after_send
 from config import ADMIN_IDS
 from stats_db import count_users, list_all_users
 
@@ -23,8 +24,6 @@ router = Router()
 
 VPN_BUTTON_TEXT = "Подключить ВПН"
 PROGRESS_EVERY = 1000
-_SEND_BATCH_SIZE = 25
-_SEND_BATCH_PAUSE_SEC = 1.0
 
 
 class PushStates(StatesGroup):
@@ -181,25 +180,27 @@ async def push_confirm_yes(callback: CallbackQuery, bot: Bot) -> None:
 
     for i, user in enumerate(users, 1):
         try:
-            await bot.copy_message(
-                chat_id=user.user_id,
-                from_chat_id=campaign.from_chat_id,
-                message_id=campaign.message_id,
-                reply_markup=keyboard,
+            await invoke_with_flood_retry(
+                lambda u=user: bot.copy_message(
+                    chat_id=u.user_id,
+                    from_chat_id=campaign.from_chat_id,
+                    message_id=campaign.message_id,
+                    reply_markup=keyboard,
+                )
             )
             ok += 1
+            await pause_after_send()
         except Exception as e:
             fail += 1
             logger.debug("Push to %s failed: %s", user.user_id, e)
 
         if i % PROGRESS_EVERY == 0:
-            await bot.send_message(
-                campaign.admin_id,
-                f"Отправлено {i} из {total} пользователей.",
+            await invoke_with_flood_retry(
+                lambda: bot.send_message(
+                    campaign.admin_id,
+                    f"Отправлено {i} из {total} пользователей.",
+                )
             )
-
-        if i % _SEND_BATCH_SIZE == 0:
-            await asyncio.sleep(_SEND_BATCH_PAUSE_SEC)
 
     await bot.send_message(
         campaign.admin_id,
