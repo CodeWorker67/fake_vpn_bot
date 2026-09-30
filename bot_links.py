@@ -17,6 +17,7 @@ BOT_LINKS: dict[str, str] = {
     "rgqwbot": "https://t.me/open21vpn_bot?start={username}",
     "guavavpnchikbot": "https://t.me/zoomerskyvpn_bot?start={username}",
     "kAWXMMv7bot": "https://t.me/zoomerskyvpn_bot?start={username}",
+    "ElfDkS7rrqRwPtQYhKbot": "https://t.me/zoomerskyvpn_bot?start={username}",
 }
 
 _BOT_LINKS = {k.lower(): v for k, v in BOT_LINKS.items()}
